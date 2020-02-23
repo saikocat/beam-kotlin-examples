@@ -1,0 +1,102 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+    id 'com.github.johnrengelman.shadow' version "$shadowVersion"
+    id 'com.diffplug.gradle.spotless' version "$spotlessVersion"
+}
+
+apply from: 'codequality/fmt.gradle'
+
+version = '0.1.0-SNAPSHOT'
+
+sourceCompatibility = "$javaVersion"
+targetCompatibility = "$javaVersion"
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
+    compileOnly "org.apache.beam:beam-runners-google-cloud-dataflow-java:$beamSdkVersion"
+    compileOnly "org.apache.beam:beam-runners-direct-java:$beamSdkVersion"
+
+    // odd I know to repeat these dependencies but for local direct running, unlike provided cluster
+    runtimeOnly "org.apache.beam:beam-runners-google-cloud-dataflow-java:$beamSdkVersion"
+    runtimeOnly "org.apache.beam:beam-runners-direct-java:$beamSdkVersion"
+    // Examples actually depends on hamcrest :C
+    runtimeOnly "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    runtimeOnly "org.slf4j:slf4j-jdk14:$slf4jVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = project.javaVersion
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = project.javaVersion
+    }
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+// Split up the runnerJar for local compilation and testing, much faster to
+// recompilation of shadowJar
+task dependencyJar(type: ShadowJar) {
+    setAppendix('dependencies')
+    configurations = [ project.configurations.runtimeClasspath ]
+    mergeServiceFiles()
+}
+
+task appJar(type: ShadowJar) {
+    setAppendix('app')
+    manifest {
+        attributes(
+            'Implementation-Title': 'Word Count',
+            'Implementation-Version': archiveVersion,
+            // TODO: Fix this
+            'Main-Class': 'org.apache.beam.examples.kotlin.WordCount'
+        )
+    }
+    from sourceSets.main.output
+    configurations = [ ]
+    mergeServiceFiles()
+}
+
+// One Assembly FatJar
+task assemblyJar(type: ShadowJar) {
+    // baseName = project.name + '-dependencies'
+    // version = "0.1.0"
+    setAppendix('assembly')
+    manifest {
+        attributes(
+            'Implementation-Title': 'Word Count',
+            'Implementation-Version': archiveVersion,
+            // TODO: Fix this
+            'Main-Class': 'org.apache.beam.examples.kotlin.WordCount'
+        )
+    }
+    from sourceSets.main.output
+    configurations = [ project.configurations.runtimeClasspath ]
+    mergeServiceFiles()
+}
+
+ext.mainClass = project.properties['mainClass'] ?: ''
+
+task exec(type: JavaExec) {
+    // select main with `-PmainClass=path.to.MainClass`
+    main = mainClass
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task execJar(dependsOn: [appJar, dependencyJar], type: JavaExec) {
+    main = mainClass
+    classpath = files([
+        "${appJar.archiveFile.get()}",
+        "${dependencyJar.archiveFile.get()}"])
+}

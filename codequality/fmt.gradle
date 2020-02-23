@@ -1,0 +1,14 @@
+spotless {
+  kotlin {
+    // optionally takes a version
+    ktlint()
+    // also supports license headers
+    licenseHeaderFile 'codequality/LICENSE_HEADER' // License header file
+  }
+  kotlinGradle {
+    // same as kotlin, but for .gradle.kts files (defaults to '*.gradle.kts')
+    target '*.gradle.kts'
+
+    ktlint()
+  }
+}
