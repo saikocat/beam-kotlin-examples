@@ -128,7 +128,7 @@ object TopWikipediaSessions {
                 .apply(Count.perElement())
     }
 
-    class KVC : SerializableComparator<KV<String, Long>> {
+    class SessionLengthComparator : SerializableComparator<KV<String, Long>> {
         override fun compare(thiz: KV<String, Long>, that: KV<String, Long>): Int =
             ComparisonChain
                 .start()
@@ -140,7 +140,7 @@ object TopWikipediaSessions {
     /** Computes the longest session ending in each month. */
     class TopPerMonth : PTransform<PCollection<KV<String, Long>>, PCollection<List<KV<String, Long>>>>() {
         override fun expand(sessions: PCollection<KV<String, Long>>): PCollection<List<KV<String, Long>>> {
-            val comparator = KVC()
+            val comparator = SessionLengthComparator()
 
             return sessions
                 .apply(Window.into<KV<String, Long>>(CalendarWindows.months(1)))
