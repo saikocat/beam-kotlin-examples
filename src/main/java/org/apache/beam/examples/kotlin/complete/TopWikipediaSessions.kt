@@ -56,7 +56,8 @@ object TopWikipediaSessions {
     private const val EXPORTED_WIKI_TABLE = "gs://apache-beam-samples/wikipedia_edits/*.json"
     private const val SAMPLING_THRESHOLD = 0.1
 
-    @JvmStatic fun main(args: Array<String>) {
+    @JvmStatic
+    fun main(args: Array<String>) {
         val options = PipelineOptionsFactory
             .fromArgs(*args)
             .withValidation()
@@ -65,7 +66,8 @@ object TopWikipediaSessions {
         run(options)
     }
 
-    @JvmStatic fun run(options: Options) {
+    @JvmStatic
+    fun run(options: Options) {
         val pipeline = Pipeline.create(options)
 
         pipeline
