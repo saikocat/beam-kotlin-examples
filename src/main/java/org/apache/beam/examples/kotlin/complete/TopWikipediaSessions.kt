@@ -69,29 +69,26 @@ object TopWikipediaSessions {
         val pipeline = Pipeline.create(options)
 
         pipeline
-            .apply(TextIO.read().from(options.getWikiInput()))
+            .apply(TextIO.read().from(options.wikiInput))
             .apply(MapElements.via<String, TableRow>(ParseTableRowJson()))
-            .apply(ComputeTopSessions(options.getSamplingThreshold()))
-            .apply("Write", TextIO.write().to(options.getOutput()))
+            .apply(ComputeTopSessions(options.samplingThreshold))
+            .apply("Write", TextIO.write().to(options.output))
 
         pipeline.run().waitUntilFinish()
     }
 
     interface Options : PipelineOptions {
-        @Description("Input specified as a GCS path containing a BigQuery table exported as json")
-        @Default.String(EXPORTED_WIKI_TABLE)
-        fun getWikiInput(): String
-        fun setWikiInput(value: String): Unit
+        @get:Description("Input specified as a GCS path containing a BigQuery table exported as json")
+        @get:Default.String(EXPORTED_WIKI_TABLE)
+        var wikiInput: String
 
-        @Description("Sampling threshold for number of users")
-        @Default.Double(SAMPLING_THRESHOLD)
-        fun getSamplingThreshold(): Double
-        fun setSamplingThreshold(value: Double): Unit
+        @get:Description("Sampling threshold for number of users")
+        @get:Default.Double(SAMPLING_THRESHOLD)
+        var samplingThreshold: Double
 
-        @Description("File to output results to")
-        @Validation.Required
-        fun getOutput(): String
-        fun setOutput(value: String): Unit
+        @get:Description("File to output results to")
+        @get:Validation.Required
+        var output: String
     }
 
     class ParseTableRowJson : SimpleFunction<String, TableRow>() {
