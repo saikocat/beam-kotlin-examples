@@ -30,6 +30,8 @@ dependencies {
     runtimeOnly "org.slf4j:slf4j-jdk14:$slf4jVersion"
 
     testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.apache.beam:beam-runners-google-cloud-dataflow-java:$beamSdkVersion"
+    testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
 }
 
 compileKotlin {
