@@ -140,8 +140,8 @@ object TopWikipediaSessions {
     }
 
     /** Computes the longest session ending in each month. */
-    class TopPerMonth : PTransform<PCollection<KV<String, Long>>, PCollection<List<KV<String, Long>>>>() {
-        override fun expand(sessions: PCollection<KV<String, Long>>): PCollection<List<KV<String, Long>>> {
+    class TopPerMonth : PTransform<PCollection<KV<String, Long>>, PCollection<MutableList<KV<String, Long>>>>() {
+        override fun expand(sessions: PCollection<KV<String, Long>>): PCollection<MutableList<KV<String, Long>>> {
             val comparator = SessionLengthComparator()
 
             return sessions
@@ -156,7 +156,7 @@ object TopWikipediaSessions {
             ctx.output(KV.of("${ctx.element().getKey()} : $window", ctx.element().getValue()))
     }
 
-    class FormatOutputDoFn : DoFn<List<KV<String, Long>>, String>() {
+    class FormatOutputDoFn : DoFn<MutableList<KV<String, Long>>, String>() {
         @ProcessElement
         fun processElement(ctx: ProcessContext, window: BoundedWindow) {
             for (item in ctx.element()) {
